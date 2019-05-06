@@ -48,26 +48,27 @@ const server = app.listen(config.listenPort, config.listenAddress, () => {
 
 app.post('/', (req, res) => {
     if (config.outgoingToken && req.body.token === config.outgoingToken) {
-        log.debug('<', req.body.channel_name, req.body.user_name, req.body.text)
-        msg(req.body.text, req.body.user_name, req.body.channel_name);
+        log.debug('<', req.body.channel_name, req.body.user_name, req.body.text);
+        msg(req.body.text, req.body.user_name, req.body.channel_name, req.body);
         res.sendStatus(200);
     } else {
         res.sendStatus(404);
     }
 });
 
-function msg(text, user, channel) {
+function msg(text, user, channel, apiResponse) {
     /**
      * @callback subscribeCallback
      * @param {string|string[]} text - text or .match(RegExp) array
      * @param {string} user - the Name of the User that said something
      * @param {string} channel - the Channel where something was said
+     * @param {object} apiResponse - the full mattermost API response
      */
     Object.keys(callbacks).forEach(key => {
         if (typeof callbacks[key].rx === 'object') {
-            if (callbacks[key].rx.test(text)) callbacks[key].cb(text.match(callbacks[key].rx), user, channel);
+            if (callbacks[key].rx.test(text)) callbacks[key].cb(text.match(callbacks[key].rx), user, channel, apiResponse);
         } else {
-            if (callbacks[key].rx === text) callbacks[key].cb(text, user, channel);
+            if (callbacks[key].rx === text) callbacks[key].cb(text, user, channel, apiResponse);
         }
     });
 }
